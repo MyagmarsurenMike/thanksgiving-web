@@ -9,7 +9,7 @@ export async function GET() {
     
     const messages = await Message.find({ status: 'approved' })
       .sort({ createdAt: -1 })
-      .select('name message emoji createdAt');
+      .select('fromName toName message emoji createdAt');
     
     return NextResponse.json(messages);
   } catch (error) {
@@ -26,19 +26,26 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     
-    const { name, message, emoji } = await request.json();
+    const { fromName, toName, message, emoji } = await request.json();
     
     // Validation
-    if (!name || !message) {
+    if (!fromName || !toName || !message) {
       return NextResponse.json(
-        { error: 'Name and message are required' },
+        { error: 'From name, to name and message are required' },
         { status: 400 }
       );
     }
     
-    if (name.length > 100) {
+    if (fromName.length > 100) {
       return NextResponse.json(
-        { error: 'Name cannot be more than 100 characters' },
+        { error: 'From name cannot be more than 100 characters' },
+        { status: 400 }
+      );
+    }
+
+    if (toName.length > 100) {
+      return NextResponse.json(
+        { error: 'To name cannot be more than 100 characters' },
         { status: 400 }
       );
     }
@@ -51,7 +58,8 @@ export async function POST(request: NextRequest) {
     }
     
     const newMessage = new Message({
-      name: name.trim(),
+      fromName: fromName.trim(),
+      toName: toName.trim(),
       message: message.trim(),
       emoji: emoji?.trim() || '',
       status: 'pending'

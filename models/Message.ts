@@ -1,7 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IMessage extends Document {
-  name: string;
+  fromName: string;
+  toName: string;
   message: string;
   emoji?: string;
   createdAt: Date;
@@ -9,11 +10,17 @@ export interface IMessage extends Document {
 }
 
 const MessageSchema: Schema = new Schema({
-  name: {
+  fromName: {
     type: String,
-    required: [true, 'Name is required'],
+    required: [true, 'From name is required'],
     trim: true,
-    maxlength: [100, 'Name cannot be more than 100 characters']
+    maxlength: [100, 'From name cannot be more than 100 characters']
+  },
+  toName: {
+    type: String,
+    required: [true, 'To name is required'],
+    trim: true,
+    maxlength: [100, 'To name cannot be more than 100 characters']
   },
   message: {
     type: String,
@@ -37,4 +44,9 @@ const MessageSchema: Schema = new Schema({
   }
 });
 
-export default mongoose.models.Message || mongoose.model<IMessage>('Message', MessageSchema);
+// Delete existing model to prevent OverwriteModelError
+if (mongoose.models.Message) {
+  delete mongoose.models.Message;
+}
+
+export default mongoose.model<IMessage>('Message', MessageSchema);

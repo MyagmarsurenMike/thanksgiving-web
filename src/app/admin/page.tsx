@@ -9,7 +9,8 @@ const { Title } = Typography;
 
 interface Message {
   _id: string;
-  name: string;
+  fromName: string;
+  toName: string;
   message: string;
   emoji?: string;
   createdAt: string;
@@ -30,15 +31,15 @@ export default function AdminPage() {
         setMessages(data);
       } else {
         notification.error({
-          message: 'Error',
-          description: 'Failed to fetch messages',
+          message: 'Алдаа',
+          description: 'Мэндчилгээнүүдийг ачааллаж чадсангүй',
         });
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
       notification.error({
-        message: 'Network Error',
-        description: 'Unable to fetch messages',
+        message: 'Сүлжээний алдаа',
+        description: 'Мэндчилгээнүүдийг ачааллах боломжгүй',
       });
     } finally {
       setLoading(false);
@@ -61,23 +62,25 @@ export default function AdminPage() {
       });
 
       if (response.ok) {
+        const statusText = status === 'approved' ? 'зөвшөөрөгдлөө' : 'татгалзагдлаа';
         notification.success({
-          message: 'Success',
-          description: `Message ${status} successfully`,
+          message: 'Амжилттай',
+          description: `Мэндчилгээ ${statusText}`,
         });
         fetchMessages();
       } else {
         const data = await response.json();
+        const statusText = status === 'approved' ? 'зөвшөөрөх' : 'татгалзах';
         notification.error({
-          message: 'Error',
-          description: data.error || `Failed to ${status} message`,
+          message: 'Алдаа',
+          description: data.error || `Мэндчилгээг ${statusText}д алдаа гарлаа`,
         });
       }
     } catch (error) {
       console.error('Error updating message:', error);
       notification.error({
-        message: 'Network Error',
-        description: 'Unable to update message status',
+        message: 'Сүлжээний алдаа',
+        description: 'Мэндчилгээний төлөвийг шинэчлэх боломжгүй',
       });
     } finally {
       setActionLoading(null);
@@ -97,22 +100,22 @@ export default function AdminPage() {
 
       if (response.ok) {
         notification.success({
-          message: 'Success',
-          description: 'Message deleted successfully',
+          message: 'Амжилттай',
+          description: 'Мэндчилгээ устгагдлаа',
         });
         fetchMessages();
       } else {
         const data = await response.json();
         notification.error({
-          message: 'Error',
-          description: data.error || 'Failed to delete message',
+          message: 'Алдаа',
+          description: data.error || 'Мэндчилгээг устгахад алдаа гарлаа',
         });
       }
     } catch (error) {
       console.error('Error deleting message:', error);
       notification.error({
-        message: 'Network Error',
-        description: 'Unable to delete message',
+        message: 'Сүлжээний алдаа',
+        description: 'Мэндчилгээг устгах боломжгүй',
       });
     } finally {
       setActionLoading(null);
@@ -132,16 +135,47 @@ export default function AdminPage() {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'Зөвшөөрөгдсөн';
+      case 'rejected':
+        return 'Татгалзагдсан';
+      case 'pending':
+        return 'Хүлээгдэж буй';
+      default:
+        return status;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const months = [
+      'Нэгдүгээр сар', 'Хоёрдугаар сар', 'Гуравдугаар сар', 'Дөрөвдүгээр сар',
+      'Тавдугаар сар', 'Зургадугаар сар', 'Долдугаар сар', 'Наймдугаар сар',
+      'Есдүгээр сар', 'Аравдугаар сар', 'Арван нэгдүгээр сар', 'Арван хоёрдугаар сар'
+    ];
+    
+    return `${date.getDate()}-р өдөр, ${months[date.getMonth()]}, ${date.getFullYear()}`;
+  };
+
   const columns: ColumnsType<Message> = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: 'Хэнээс',
+      dataIndex: 'fromName',
+      key: 'fromName',
       width: 120,
-      render: (name: string) => <strong className="text-orange-800">{name}</strong>,
+      render: (fromName: string) => <strong className="text-orange-800">{fromName}</strong>,
     },
     {
-      title: 'Message',
+      title: 'Хэнд',
+      dataIndex: 'toName',
+      key: 'toName',
+      width: 120,
+      render: (toName: string) => <strong className="text-orange-800">{toName}</strong>,
+    },
+    {
+      title: 'Мэндчилгээ',
       dataIndex: 'message',
       key: 'message',
       render: (message: string) => (
@@ -151,7 +185,7 @@ export default function AdminPage() {
       ),
     },
     {
-      title: 'Emoji',
+      title: 'Сэтгэл хөдлөл',
       dataIndex: 'emoji',
       key: 'emoji',
       width: 80,
@@ -159,27 +193,27 @@ export default function AdminPage() {
       render: (emoji: string) => <span className="text-2xl">{emoji || '-'}</span>,
     },
     {
-      title: 'Status',
+      title: 'Төлөв',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 120,
       render: (status: string) => (
-        <Tag color={getStatusColor(status)} className="capitalize">
-          {status}
+        <Tag color={getStatusColor(status)}>
+          {getStatusText(status)}
         </Tag>
       ),
     },
     {
-      title: 'Created',
+      title: 'Огноо',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 120,
-      render: (date: string) => new Date(date).toLocaleDateString(),
+      width: 140,
+      render: (date: string) => formatDate(date),
     },
     {
-      title: 'Actions',
+      title: 'Үйлдэл',
       key: 'actions',
-      width: 200,
+      width: 220,
       render: (_, record: Message) => (
         <Space size="small">
           {record.status === 'pending' && (
@@ -192,7 +226,7 @@ export default function AdminPage() {
                 onClick={() => updateMessageStatus(record._id, 'approved')}
                 className="bg-green-600 hover:bg-green-700 border-green-600"
               >
-                Approve
+                Зөвшөөрөх
               </Button>
               <Button
                 size="small"
@@ -201,7 +235,7 @@ export default function AdminPage() {
                 onClick={() => updateMessageStatus(record._id, 'rejected')}
                 className="border-red-300 text-red-600 hover:border-red-400 hover:text-red-700"
               >
-                Reject
+                Татгалзах
               </Button>
             </>
           )}
@@ -213,7 +247,7 @@ export default function AdminPage() {
               onClick={() => updateMessageStatus(record._id, 'rejected')}
               className="border-red-300 text-red-600 hover:border-red-400 hover:text-red-700"
             >
-              Reject
+              Татгалзах
             </Button>
           )}
           {record.status === 'rejected' && (
@@ -225,15 +259,15 @@ export default function AdminPage() {
               onClick={() => updateMessageStatus(record._id, 'approved')}
               className="bg-green-600 hover:bg-green-700 border-green-600"
             >
-              Approve
+              Зөвшөөрөх
             </Button>
           )}
           <Popconfirm
-            title="Delete Message"
-            description="Are you sure you want to permanently delete this message?"
+            title="Мэндчилгээг устгах"
+            description="Та энэ мэндчилгээг бүрмөсөн устгахдаа итгэлтэй байна уу?"
             onConfirm={() => deleteMessage(record._id)}
-            okText="Yes"
-            cancelText="No"
+            okText="Тийм"
+            cancelText="Үгүй"
             okButtonProps={{ danger: true }}
           >
             <Button
@@ -242,7 +276,7 @@ export default function AdminPage() {
               icon={<DeleteOutlined />}
               loading={actionLoading === record._id}
             >
-              Delete
+              Устгах
             </Button>
           </Popconfirm>
         </Space>
@@ -263,11 +297,11 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-8">
           <Title level={1} className="text-orange-800! mb-4! flex items-center gap-3">
-            🛠️ Admin Dashboard
+            🛠️ Админ хяналтын самбар
           </Title>
           <div className="flex justify-between items-center">
             <p className="text-orange-700 text-lg mb-0">
-              Manage and moderate Thanksgiving messages
+              Талархлын баярын мэндчилгээнүүдийг удирдан, шалгах
             </p>
             <Button
               icon={<ReloadOutlined />}
@@ -275,7 +309,7 @@ export default function AdminPage() {
               loading={loading}
               className="border-orange-300 text-orange-700 hover:border-orange-400"
             >
-              Refresh
+              Шинэчлэх
             </Button>
           </div>
         </div>
@@ -283,16 +317,16 @@ export default function AdminPage() {
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="text-center border-orange-200">
-            <Statistic title="Total Messages" value={stats.total} valueStyle={{ color: '#ea580c' }} />
+            <Statistic title="Нийт мэндчилгээ" value={stats.total} valueStyle={{ color: '#ea580c' }} />
           </Card>
           <Card className="text-center border-yellow-200">
-            <Statistic title="Pending" value={stats.pending} valueStyle={{ color: '#d97706' }} />
+            <Statistic title="Хүлээгдэж буй" value={stats.pending} valueStyle={{ color: '#d97706' }} />
           </Card>
           <Card className="text-center border-green-200">
-            <Statistic title="Approved" value={stats.approved} valueStyle={{ color: '#16a34a' }} />
+            <Statistic title="Зөвшөөрөгдсөн" value={stats.approved} valueStyle={{ color: '#16a34a' }} />
           </Card>
           <Card className="text-center border-red-200">
-            <Statistic title="Rejected" value={stats.rejected} valueStyle={{ color: '#dc2626' }} />
+            <Statistic title="Татгалзагдсан" value={stats.rejected} valueStyle={{ color: '#dc2626' }} />
           </Card>
         </div>
 
@@ -307,9 +341,9 @@ export default function AdminPage() {
               pageSize: 10,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} messages`,
+              showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} мэндчилгээ`,
             }}
-            scroll={{ x: 1000 }}
+            scroll={{ x: 1200 }}
           />
         </Card>
       </div>
