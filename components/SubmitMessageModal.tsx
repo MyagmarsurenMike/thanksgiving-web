@@ -34,8 +34,8 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
 
       if (response.ok) {
         notification.success({
-          message: 'Message Submitted!',
-          description: 'Your Thanksgiving message has been submitted and is pending approval.',
+          message: 'Амжилттай илгээгдлээ!',
+          description: 'Таны Талархлын баярын мессеж хүлээн авсан бөгөөд баталгаажуулалтын дараа нийтлэгдэх болно.',
           placement: 'topRight',
           duration: 4,
         });
@@ -45,16 +45,16 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
         onSubmitSuccess();
       } else {
         notification.error({
-          message: 'Submission Failed',
-          description: data.error || 'Failed to submit your message. Please try again.',
+          message: 'Илгээхэд алдаа гарлаа',
+          description: data.error || 'Мессеж илгээхэд алдаа гарлаа. Дахин оролдоно уу.',
           placement: 'topRight',
         });
       }
     } catch (error) {
       console.error('Error submitting message:', error);
       notification.error({
-        message: 'Network Error',
-        description: 'Unable to submit your message. Please check your connection and try again.',
+        message: 'Сүлжээний алдаа',
+        description: 'Мессеж илгээж чадсангүй. Интернэтээ шалгаад дахин оролдоно уу.',
         placement: 'topRight',
       });
     } finally {
@@ -72,7 +72,7 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
       title={
         <div className="flex items-center gap-2 text-orange-800">
           <SmileOutlined className="text-orange-600" />
-          <span>Share Your Thanksgiving Message</span>
+          <span>Талархлын мессежээ хуваалцаарай</span>
         </div>
       }
       open={visible}
@@ -83,7 +83,7 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
     >
       <div className="py-4">
         <p className="text-gray-600 mb-6">
-          Share what you're grateful for this Thanksgiving! Your message will be reviewed before appearing on the site.
+          Энэ жилийн Талархлын баяраар юунд талархаж байна вэ? Илгээсэн мессеж тань нийтлэгдэхийн өмнө шалгагдана.
         </p>
         
         <Form
@@ -93,30 +93,30 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
           className="space-y-4"
         >
           <Form.Item
-            label={<span className="text-orange-800 font-medium">Your Name</span>}
+            label={<span className="text-orange-800 font-medium">Таны нэр</span>}
             name="name"
             rules={[
-              { required: true, message: 'Please enter your name' },
-              { max: 100, message: 'Name cannot be more than 100 characters' }
+              { required: true, message: 'Нэрээ оруулна уу' },
+              { max: 100, message: 'Нэр 100 тэмдэгтээс хэтрэхгүй' }
             ]}
           >
             <Input
-              placeholder="Enter your name"
+              placeholder="Нэрээ оруулна уу"
               className="rounded-lg border-orange-200 focus:border-orange-400"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={<span className="text-orange-800 font-medium">Your Thanksgiving Message</span>}
+            label={<span className="text-orange-800 font-medium">Талархлын баярын мессеж</span>}
             name="message"
             rules={[
-              { required: true, message: 'Please enter your message' },
-              { max: 500, message: 'Message cannot be more than 500 characters' }
+              { required: true, message: 'Мессежээ оруулна уу' },
+              { max: 500, message: 'Мессеж 500 тэмдэгтээс хэтрэхгүй' }
             ]}
           >
             <Input.TextArea
-              placeholder="What are you thankful for this year?"
+              placeholder="Энэ жил та юунд талархаж байна вэ?"
               rows={4}
               className="rounded-lg border-orange-200 focus:border-orange-400"
               showCount
@@ -125,10 +125,10 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
           </Form.Item>
 
           <Form.Item
-            label={<span className="text-orange-800 font-medium">Emoji (Optional)</span>}
+            label={<span className="text-orange-800 font-medium">Emoji (заавал биш)</span>}
             name="emoji"
             rules={[
-              { max: 10, message: 'Emoji cannot be more than 10 characters' }
+              { max: 10, message: 'Emoji 10 тэмдэгтээс хэтрэхгүй' }
             ]}
           >
             <Input
@@ -143,7 +143,7 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
               onClick={handleCancel}
               className="flex-1 h-12 rounded-lg border-orange-300 text-orange-700 hover:border-orange-400"
             >
-              Cancel
+              Болих
             </Button>
             <Button
               type="primary"
@@ -151,7 +151,7 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
               loading={loading}
               className="flex-1 h-12 rounded-lg bg-orange-600 hover:bg-orange-700 border-orange-600"
             >
-              {loading ? 'Submitting...' : 'Submit Message'}
+              {loading ? 'Илгээж байна...' : 'Мессеж илгээх'}
             </Button>
           </div>
         </Form>
