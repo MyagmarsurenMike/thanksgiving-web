@@ -258,11 +258,11 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
+    <div className="min-h-screen bg-linear-to-br from-orange-50 via-amber-50 to-red-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Title level={1} className="!text-orange-800 !mb-4 flex items-center gap-3">
+          <Title level={1} className="text-orange-800! mb-4! flex items-center gap-3">
             🛠️ Admin Dashboard
           </Title>
           <div className="flex justify-between items-center">
