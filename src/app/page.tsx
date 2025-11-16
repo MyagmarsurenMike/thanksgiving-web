@@ -63,15 +63,15 @@ export default function Home() {
     autoplaySpeed: 4000,
     pauseOnHover: true,
     fade: false,
-    effect: 'slide',
+    effect: 'slide' as any,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
+    <div className="min-h-screen bg-linear-to-br from-orange-50 via-amber-50 to-red-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-orange-100 to-amber-100 border-b border-orange-200">
+      <div className="bg-linear-to-r from-orange-100 to-amber-100 border-b border-orange-200">
         <div className="max-w-6xl mx-auto px-4 py-12 text-center">
-          <Title level={1} className="!text-orange-800 !mb-4 flex items-center justify-center gap-3">
+          <Title level={1} className="text-orange-800! mb-4! flex items-center justify-center gap-3">
             🦃 Welcome to Our Thanksgiving Community 🍂
           </Title>
           <Text className="text-orange-700 text-lg block mb-6">
@@ -127,7 +127,7 @@ export default function Home() {
           /* Carousel Mode - Much Wider and Bigger */
           <div className="relative">
             <div className="mb-12 text-center">
-              <Title level={1} className="!text-orange-800 !mb-4 !text-5xl">
+              <Title level={1} className="text-orange-800! mb-4! text-5xl!">
                 Messages of Gratitude
               </Title>
               <Text className="text-orange-600 text-2xl">Heartfelt messages from our community</Text>
@@ -226,7 +226,7 @@ export default function Home() {
           /* Grid Mode - Original layout */
           <div>
             <div className="mb-8 text-center">
-              <Title level={2} className="!text-orange-800 !mb-2">
+              <Title level={2} className="text-orange-800! mb-2!">
                 Messages of Gratitude
               </Title>
               <Text className="text-orange-600 text-lg">All heartfelt messages from our community</Text>
