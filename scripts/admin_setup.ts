@@ -5,8 +5,8 @@ import bcrypt from "bcrypt";
 
 dotenv.config({ path: '.env.local' });
 
-const ADMIN_NAME = process.env.ADMIN_NAME || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_NAME = "admin";
+const ADMIN_PASSWORD = "thanksgiving2024";
 
 const SALT_ROUNDS = 16;
 

@@ -42,7 +42,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-orange-50 via-amber-50 to-red-50">
         <div className="text-center">
           <Spin size="large" />
           <p className="mt-4 text-orange-700">Нэвтрэх эрх шалгаж байна...</p>

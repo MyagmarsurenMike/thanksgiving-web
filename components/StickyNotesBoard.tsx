@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 
 interface Message {
@@ -115,7 +115,7 @@ export default function StickyNotesBoard({ messages }: Props) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[240px] px-4">
+      <div className="flex items-center justify-center min-h-60 px-4">
         <div className="text-center">
           <p className="text-xl text-gray-600">Одоогоор мэндчилгээ байхгүй байна.</p>
           <p className="text-gray-500 mt-2">Та эхнийх нь болж мэндчилгээ хуваалцаарай 🍁</p>
@@ -158,7 +158,7 @@ export default function StickyNotesBoard({ messages }: Props) {
 
                   <div className="space-y-3 flex flex-col h-full">
                     <div className="flex items-start gap-2 flex-1">
-                      <Heart className="w-4 h-4 text-red-500 flex-shrink-0 mt-1" fill="currentColor" />
+                      <Heart className="w-4 h-4 text-red-500 shrink-0 mt-1" fill="currentColor" />
                       <p className={`${sizeConfig.text} text-gray-800 leading-snug line-clamp-6`}>
                         {/* show emoji inline if present */}
                         {message.emoji ? `${message.emoji} ` : ''}
@@ -177,7 +177,7 @@ export default function StickyNotesBoard({ messages }: Props) {
                   </div>
 
                   {/* corner fold */}
-                  <div className="absolute bottom-0 right-0 w-0 h-0 border-l-[20px] border-l-transparent border-b-[20px] border-b-gray-400/20 rounded-bl-lg" />
+                  <div className="absolute bottom-0 right-0 w-0 h-0 border-l-20 border-l-transparent border-b-20 border-b-gray-400/20 rounded-bl-lg" />
                 </div>
               </div>
             );
