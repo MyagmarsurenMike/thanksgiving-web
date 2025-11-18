@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../../lib/mongodb';
 import Message from '../../../../../models/Message';
+import { auth } from '../../../../../lib/authenticator';
 
 // PATCH /api/admin/update-status - Approve or reject a message
 export async function PATCH(request: NextRequest) {
   try {
     await connectDB();
+    await auth();
     
     const { messageId, status } = await request.json();
     
