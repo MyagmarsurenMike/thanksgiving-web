@@ -139,20 +139,6 @@ const SubmitMessageModal: React.FC<SubmitMessageModalProps> = ({
             />
           </Form.Item>
 
-          <Form.Item
-            label={<span className="text-orange-800 font-medium">Сэтгэл хөдлөл (заавал биш)</span>}
-            name="emoji"
-            rules={[
-              { max: 10, message: 'Emoji 10 тэмдэгтээс хэтрэхгүй' }
-            ]}
-          >
-            <Input
-              placeholder="🦃 🍂 🥧 ❤️ 🙏"
-              className="rounded-lg border-orange-200 focus:border-orange-400"
-              size="large"
-            />
-          </Form.Item>
-
           <div className="flex gap-3 pt-4">
             <Button
               onClick={handleCancel}

@@ -114,11 +114,6 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <div className="mb-8 text-center">
-              <Title level={2} className="text-orange-800 mb-2">Талархлын мэндчилгээнүүд</Title>
-              <Text className="text-orange-600">Манай нийгэмлэгийн бүх сэтгэл хөдөлгөм мэндчилгээнүүд</Text>
-            </div>
-
             {/* Sticky notes board */}
             <StickyNotesBoard messages={messages} />
 

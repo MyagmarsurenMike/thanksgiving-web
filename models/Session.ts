@@ -1,4 +1,5 @@
 import { Document, model, Schema } from "mongoose";
+import mongoose from "mongoose";
 
 export const EXPIRES = 7 * 24 * 3600;
 
@@ -14,4 +15,5 @@ const SessionSchema = new Schema({
   createdAt: { type: Date, default: Date.now, expires: EXPIRES }
 });
 
-export default model<ISession>("Session", SessionSchema);
+// Check if model already exists to prevent OverwriteModelError in development
+export default mongoose.models.Session || mongoose.model<ISession>("Session", SessionSchema);

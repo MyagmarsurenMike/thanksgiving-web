@@ -1,11 +1,16 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 import Message from '../models/Message';
+import Admin from '../models/Admin';
 
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/thanksgiving_messages';
+const ADMIN_NAME = process.env.ADMIN_NAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'thanksgiving2024';
+const SALT_ROUNDS = 16;
 
 const seedMessages = [
   {
@@ -71,15 +76,28 @@ async function seedDatabase() {
     await mongoose.connect(MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    // Clear existing messages
+    // Clear existing data
     await Message.deleteMany({});
     console.log('Cleared existing messages');
+    
+    await Admin.deleteMany({});
+    console.log('Cleared existing admins');
 
-    // Insert seed data
+    // Insert seed messages
     await Message.insertMany(seedMessages);
     console.log(`Successfully seeded ${seedMessages.length} messages`);
 
-    console.log('Seed data inserted successfully!');
+    // Create admin account
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, SALT_ROUNDS);
+    await Admin.create({
+      name: ADMIN_NAME,
+      password: hashedPassword
+    });
+    console.log(`Successfully created admin account: ${ADMIN_NAME}`);
+
+    console.log('🦃 Seed data and admin account created successfully!');
+    console.log(`📝 Admin Login: ${ADMIN_NAME}`);
+    console.log(`🔑 Admin Password: ${ADMIN_PASSWORD}`);
   } catch (error) {
     console.error('Error seeding database:', error);
   } finally {

@@ -203,3 +203,126 @@ body {
 .thanksgiving-footer-text {
   color: #fed7aa !important;
 }
+
+/* Admin Dashboard Styles */
+.admin-page-bg {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #fef7ed, #fef3e2, #fef2f2);
+}
+
+.admin-container {
+  max-width: 84rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.admin-header {
+  margin-bottom: 2rem;
+}
+
+.admin-title {
+  color: #9a3412 !important;
+  margin-bottom: 1rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-description {
+  color: #c2410c;
+  font-size: 1.125rem;
+  margin-bottom: 0;
+}
+
+.admin-refresh-btn {
+  border-color: #fdba74;
+  color: #c2410c;
+}
+
+.admin-refresh-btn:hover {
+  border-color: #f97316;
+  color: #c2410c;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.admin-stat-card {
+  text-align: center;
+  border-color: #fed7aa;
+}
+
+.admin-stat-card.total {
+  border-color: #fed7aa;
+}
+
+.admin-stat-card.pending {
+  border-color: #fde047;
+}
+
+.admin-stat-card.approved {
+  border-color: #bbf7d0;
+}
+
+.admin-stat-card.rejected {
+  border-color: #fecaca;
+}
+
+.admin-table-card {
+  border-color: #fed7aa;
+}
+
+.admin-table-name {
+  color: #9a3412;
+  font-weight: 600;
+}
+
+.admin-message-content {
+  white-space: pre-wrap;
+}
+
+.admin-message-text {
+  margin-bottom: 0;
+}
+
+.admin-actions-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-btn-approve {
+  background-color: #16a34a;
+  border-color: #16a34a;
+}
+
+.admin-btn-approve:hover {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.admin-btn-reject {
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.admin-btn-reject:hover {
+  border-color: #f87171;
+  color: #b91c1c;
+}

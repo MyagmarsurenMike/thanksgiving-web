@@ -44,9 +44,4 @@ const MessageSchema: Schema = new Schema({
   }
 });
 
-// Delete existing model to prevent OverwriteModelError
-if (mongoose.models.Message) {
-  delete mongoose.models.Message;
-}
-
-export default mongoose.model<IMessage>('Message', MessageSchema);
+export default mongoose.models.Message || mongoose.model<IMessage>("Message", MessageSchema);

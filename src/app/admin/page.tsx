@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Tag, Space, Popconfirm, notification, Typography, Card, Statistic } from 'antd';
 import { CheckOutlined, CloseOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import ProtectedRoute from '../../../components/ProtectedRoute';
 
 const { Title } = Typography;
 
@@ -17,7 +18,7 @@ interface Message {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-export default function AdminPage() {
+function AdminDashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -151,12 +152,12 @@ export default function AdminPage() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const months = [
-      'Нэгдүгээр сар', 'Хоёрдугаар сар', 'Гуравдугаар сар', 'Дөрөвдүгээр сар',
-      'Тавдугаар сар', 'Зургадугаар сар', 'Долдугаар сар', 'Наймдугаар сар',
-      'Есдүгээр сар', 'Аравдугаар сар', 'Арван нэгдүгээр сар', 'Арван хоёрдугаар сар'
+      '01', '02', '03', '04',
+      '05', '06', '07', '08',
+      '09', '10', '11', '12'
     ];
     
-    return `${date.getDate()}-р өдөр, ${months[date.getMonth()]}, ${date.getFullYear()}`;
+    return ` ${date.getFullYear()}-${months[date.getMonth()]}-${date.getDate()}`;
   };
 
   const columns: ColumnsType<Message> = [
@@ -165,32 +166,24 @@ export default function AdminPage() {
       dataIndex: 'fromName',
       key: 'fromName',
       width: 120,
-      render: (fromName: string) => <strong className="text-orange-800">{fromName}</strong>,
+      render: (fromName: string) => <strong className="admin-table-name">{fromName}</strong>,
     },
     {
       title: 'Хэнд',
       dataIndex: 'toName',
       key: 'toName',
       width: 120,
-      render: (toName: string) => <strong className="text-orange-800">{toName}</strong>,
+      render: (toName: string) => <strong className="admin-table-name">{toName}</strong>,
     },
     {
       title: 'Мэндчилгээ',
       dataIndex: 'message',
       key: 'message',
       render: (message: string) => (
-        <div className="max-w-md">
-          <p className="mb-0 line-clamp-3">{message}</p>
+        <div className="admin-message-content">
+          <p className="admin-message-text">{message}</p>
         </div>
       ),
-    },
-    {
-      title: 'Сэтгэл хөдлөл',
-      dataIndex: 'emoji',
-      key: 'emoji',
-      width: 80,
-      align: 'center',
-      render: (emoji: string) => <span className="text-2xl">{emoji || '-'}</span>,
     },
     {
       title: 'Төлөв',
@@ -213,9 +206,9 @@ export default function AdminPage() {
     {
       title: 'Үйлдэл',
       key: 'actions',
-      width: 220,
+      width: 150,
       render: (_, record: Message) => (
-        <Space size="small">
+        <div className="admin-actions-column">
           {record.status === 'pending' && (
             <>
               <Button
@@ -224,7 +217,7 @@ export default function AdminPage() {
                 icon={<CheckOutlined />}
                 loading={actionLoading === record._id}
                 onClick={() => updateMessageStatus(record._id, 'approved')}
-                className="bg-green-600 hover:bg-green-700 border-green-600"
+                className="admin-btn-approve"
               >
                 Зөвшөөрөх
               </Button>
@@ -233,7 +226,7 @@ export default function AdminPage() {
                 icon={<CloseOutlined />}
                 loading={actionLoading === record._id}
                 onClick={() => updateMessageStatus(record._id, 'rejected')}
-                className="border-red-300 text-red-600 hover:border-red-400 hover:text-red-700"
+                className="admin-btn-reject"
               >
                 Татгалзах
               </Button>
@@ -245,7 +238,7 @@ export default function AdminPage() {
               icon={<CloseOutlined />}
               loading={actionLoading === record._id}
               onClick={() => updateMessageStatus(record._id, 'rejected')}
-              className="border-red-300 text-red-600 hover:border-red-400 hover:text-red-700"
+              className="admin-btn-reject"
             >
               Татгалзах
             </Button>
@@ -257,7 +250,7 @@ export default function AdminPage() {
               icon={<CheckOutlined />}
               loading={actionLoading === record._id}
               onClick={() => updateMessageStatus(record._id, 'approved')}
-              className="bg-green-600 hover:bg-green-700 border-green-600"
+              className="admin-btn-approve"
             >
               Зөвшөөрөх
             </Button>
@@ -279,7 +272,7 @@ export default function AdminPage() {
               Устгах
             </Button>
           </Popconfirm>
-        </Space>
+        </div>
       ),
     },
   ];
@@ -292,22 +285,22 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-orange-50 via-amber-50 to-red-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="admin-page-bg">
+      <div className="admin-container">
         {/* Header */}
-        <div className="mb-8">
-          <Title level={1} className="text-orange-800! mb-4! flex items-center gap-3">
+        <div className="admin-header">
+          <Title level={1} className="admin-title">
             🛠️ Админ хяналтын самбар
           </Title>
-          <div className="flex justify-between items-center">
-            <p className="text-orange-700 text-lg mb-0">
+          <div className="admin-header-content">
+            <p className="admin-description">
               Талархлын баярын мэндчилгээнүүдийг удирдан, шалгах
             </p>
             <Button
               icon={<ReloadOutlined />}
               onClick={fetchMessages}
               loading={loading}
-              className="border-orange-300 text-orange-700 hover:border-orange-400"
+              className="admin-refresh-btn"
             >
               Шинэчлэх
             </Button>
@@ -315,23 +308,23 @@ export default function AdminPage() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="text-center border-orange-200">
+        <div className="admin-stats-grid">
+          <Card className="admin-stat-card total">
             <Statistic title="Нийт мэндчилгээ" value={stats.total} valueStyle={{ color: '#ea580c' }} />
           </Card>
-          <Card className="text-center border-yellow-200">
+          <Card className="admin-stat-card pending">
             <Statistic title="Хүлээгдэж буй" value={stats.pending} valueStyle={{ color: '#d97706' }} />
           </Card>
-          <Card className="text-center border-green-200">
+          <Card className="admin-stat-card approved">
             <Statistic title="Зөвшөөрөгдсөн" value={stats.approved} valueStyle={{ color: '#16a34a' }} />
           </Card>
-          <Card className="text-center border-red-200">
+          <Card className="admin-stat-card rejected">
             <Statistic title="Татгалзагдсан" value={stats.rejected} valueStyle={{ color: '#dc2626' }} />
           </Card>
         </div>
 
         {/* Messages Table */}
-        <Card className="border-orange-200">
+        <Card className="admin-table-card">
           <Table
             columns={columns}
             dataSource={messages}
@@ -348,5 +341,13 @@ export default function AdminPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <ProtectedRoute>
+      <AdminDashboard />
+    </ProtectedRoute>
   );
 }

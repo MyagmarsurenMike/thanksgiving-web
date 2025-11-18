@@ -10,4 +10,5 @@ const AdminSchema = new Schema({
     password: { type: String, required: true },
 });
 
-export default mongoose.model<IAdmin>("Admin", AdminSchema);
+// Check if model already exists to prevent OverwriteModelError in development
+export default mongoose.models.Admin || mongoose.model<IAdmin>("Admin", AdminSchema);
