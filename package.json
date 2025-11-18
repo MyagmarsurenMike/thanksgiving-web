@@ -13,12 +13,13 @@
     "@ant-design/icons": "^6.1.0",
     "@ant-design/nextjs-registry": "^1.2.0",
     "@types/mongoose": "^5.11.96",
-    "antd": "^5.28.1",
+    "antd": "^5.29.0",
     "dotenv": "^17.2.3",
+    "lucide-react": "^0.554.0",
     "mongoose": "^8.19.4",
-    "next": "16.0.3",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "next": "^16.0.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
