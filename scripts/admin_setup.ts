@@ -3,35 +3,37 @@ import mongoose from "mongoose";
 import Admin from "../models/Admin";
 import bcrypt from "bcrypt";
 
-dotenv.config({ path: '.env.local' });
+if (require.main === module) {
+  dotenv.config({ path: '.env.local' });
+}
 
 const ADMIN_NAME = "admin";
 const ADMIN_PASSWORD = "thanksgiving2024";
-
 const SALT_ROUNDS = 16;
-
-if (!ADMIN_PASSWORD) throw new Error("Admin password not found!");
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/thanksgiving_messages";
 
 async function createAdmin() {
-  try {
-    await mongoose.connect(MONGODB_URI);
-    console.log("Connected to:", MONGODB_URI);
+  const hashed = await bcrypt.hash(ADMIN_PASSWORD, SALT_ROUNDS);
 
-    const hashed = await bcrypt.hash(ADMIN_PASSWORD, SALT_ROUNDS);
-
-    await Admin.insertOne({
-      name: ADMIN_NAME,
-      password: hashed,
-    });
-    console.log("Inserted admin succesfully.");
-  } catch (e) {
-    console.error("Error seeding database:", e);
-  } finally {
-    await mongoose.disconnect();
-    console.log("Disconnected");
+  if (await Admin.exists({ name: ADMIN_NAME })) {
+    console.log("Admin already exists.");
+    return;
   }
+
+  await Admin.insertOne({
+    name: ADMIN_NAME,
+    password: hashed,
+  });
+  console.log("Inserted admin succesfully.");
 }
 
-createAdmin();
+if (require.main === module) {
+  await mongoose.connect(MONGODB_URI);
+  console.log("Connected to:", MONGODB_URI);
+  createAdmin();
+  await mongoose.disconnect();
+  console.log("Disconnected");
+}
+
+export default createAdmin;

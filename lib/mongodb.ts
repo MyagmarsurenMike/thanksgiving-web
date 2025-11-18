@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import createAdmin from '../scripts/admin_setup';
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/thanksgiving_messages";
 
@@ -37,6 +38,7 @@ async function connectDB() {
 
   try {
     cached.conn = await cached.promise;
+    createAdmin();
   } catch (e) {
     cached.promise = null;
     throw e;
