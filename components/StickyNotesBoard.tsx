@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Heart } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Heart } from "lucide-react";
 
 interface Message {
   _id: string;
@@ -14,173 +14,157 @@ interface Props {
   messages: Message[];
 }
 
-const stickyColors = [
-  'bg-yellow-200',
-  'bg-pink-200',
-  'bg-blue-200',
-  'bg-green-200',
-  'bg-purple-200',
-  'bg-orange-200',
-];
+const smallNote = {
+  wrapper: "col-span-1 row-span-1",
+  padding: "p-3",
+  text: "text-sm",
+  minHeight: 120,
+};
 
-const rotations = [
-  'rotate-1',
-  '-rotate-2',
-  'rotate-2',
-  '-rotate-1',
-  'rotate-3',
-  '-rotate-3',
-  'rotate-6',
-  '-rotate-6',
-  'rotate-12',
-  '-rotate-12',
-];
+const bigNote = {
+  wrapper: "col-span-2 row-span-2",
+  padding: "p-4",
+  text: "text-base",
+  minHeight: 220,
+};
 
-// smaller notes for web
-const noteSizes = [
-  { wrapper: 'col-span-1 row-span-1', padding: 'p-2', text: 'text-xs', minHeight: 100 },
-  { wrapper: 'col-span-1 row-span-1', padding: 'p-3', text: 'text-sm', minHeight: 120 },
-  { wrapper: 'col-span-1 row-span-2', padding: 'p-4', text: 'text-sm', minHeight: 140 },
+const colors = [
+  "bg-yellow-200",
+  "bg-pink-200",
+  "bg-blue-200",
+  "bg-green-200",
+  "bg-purple-200",
+  "bg-orange-200",
 ];
 
 export default function StickyNotesBoard({ messages }: Props) {
-  const getNotesCount = () => {
-    if (typeof window === 'undefined') return 12;
-    const w = window.innerWidth;
-    if (w < 640) return 9; // mobile
-    if (w < 1024) return 12; // tablet
-    return 15; // desktop
+  const NOTES_COUNT = 12;
+
+  // unique message index for each position
+  const [positions, setPositions] = useState<number[]>([]);
+
+  // animation control
+  const [anim, setAnim] = useState<Set<number>>(new Set());
+
+  // UNIQUE SELECTION
+  const pickUnique = () => {
+    const arr = [...messages.keys()];
+    const chosen: number[] = [];
+
+    for (let i = 0; i < NOTES_COUNT; i++) {
+      if (arr.length === 0) break;
+      const r = Math.floor(Math.random() * arr.length);
+      chosen.push(arr[r]);
+      arr.splice(r, 1);
+    }
+
+    return chosen;
   };
-
-  const [NOTES_COUNT, setNOTES_COUNT] = useState<number>(getNotesCount());
-  const [noteIndices, setNoteIndices] = useState<number[]>(
-    () => Array.from({ length: NOTES_COUNT }, (_, i) => i % Math.max(1, messages.length))
-  );
-  const [animatingNotes, setAnimatingNotes] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    setNoteIndices(Array.from({ length: NOTES_COUNT }, (_, i) => i % Math.max(1, messages.length)));
-  }, [messages.length, NOTES_COUNT]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const next = getNotesCount();
-      setNOTES_COUNT(next);
-      setNoteIndices(Array.from({ length: next }, (_, i) => i % Math.max(1, messages.length)));
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (messages.length === 0) return;
 
-    const intervals: number[] = [];
+    setPositions(pickUnique());
 
-    for (let position = 0; position < NOTES_COUNT; position++) {
-      const randomDelay = Math.random() * 7000 + 8000;
-      const id = window.setInterval(() => {
-        setAnimatingNotes((prev) => new Set(prev).add(position));
+    const timers: number[] = [];
+
+    positions.forEach((_, pos) => {
+      const msg = messages[positions[pos]];
+      if (!msg) return;
+
+      const isLong = msg.message.length > 120;
+      const duration = isLong
+        ? 20000 // 20 sec
+        : 10000 + Math.random() * 7000; // 10–17 sec
+
+      const timer = window.setTimeout(() => {
+        setAnim((prev) => new Set(prev).add(pos));
 
         setTimeout(() => {
-          setNoteIndices((prev) => {
-            const newIndices = [...prev];
-            newIndices[position] = (newIndices[position] + 1) % messages.length;
-            return newIndices;
+          setPositions((prev) => {
+            const next = [...prev];
+
+            // pick 1 new unique message
+            const available = messages
+              .map((_, i) => i)
+              .filter((i) => !next.includes(i));
+
+            if (available.length > 0) {
+              const newIndex =
+                available[Math.floor(Math.random() * available.length)];
+              next[pos] = newIndex;
+            }
+
+            return next;
           });
 
           setTimeout(() => {
-            setAnimatingNotes((prev) => {
-              const next = new Set(prev);
-              next.delete(position);
-              return next;
+            setAnim((prev) => {
+              const s = new Set(prev);
+              s.delete(pos);
+              return s;
             });
-          }, 600);
-        }, 250);
-      }, randomDelay);
+          }, 400);
+        }, 400);
+      }, duration);
 
-      intervals.push(id);
-    }
+      timers.push(timer);
+    });
 
-    return () => intervals.forEach((i) => clearInterval(i));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages.length, NOTES_COUNT]);
+    return () => timers.forEach(clearTimeout);
+  }, [messages, positions]);
 
-  if (messages.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-60 px-4">
-        <div className="text-center">
-          <p className="text-xl text-gray-600">Одоогоор мэндчилгээ байхгүй байна.</p>
-          <p className="text-gray-500 mt-2">Та эхнийх нь болж мэндчилгээ хуваалцаарай 🍁</p>
-        </div>
-      </div>
-    );
-  }
+  if (messages.length === 0) return null;
 
   return (
-    <div className="h-auto px-2 sm:px-4 py-4 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div
-          className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 auto-rows-min gap-3 sm:gap-4`}
-        >
-          {noteIndices.map((messageIndex, position) => {
-            const message = messages[messageIndex % messages.length];
-            if (!message) return null;
+    <div className="max-w-7xl mx-auto p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {positions.map((msgIndex, i) => {
+          const m = messages[msgIndex];
+          if (!m) return null;
 
-            const colorClass = stickyColors[messageIndex % stickyColors.length];
-            const rotationClass = rotations[messageIndex % rotations.length];
-            const sizeConfig = noteSizes[position % noteSizes.length];
+          const isLong = m.message.length > 120;
+          const size = isLong ? bigNote : smallNote;
 
-            return (
+          return (
+            <div
+              key={i}
+              className={`${size.wrapper} flex items-center justify-center`}
+              style={{ minHeight: size.minHeight }}
+            >
               <div
-                key={position}
-                className={`flex items-center justify-center ${sizeConfig.wrapper}`}
-                style={{ minHeight: sizeConfig.minHeight }}
+                className={`
+                  ${colors[msgIndex % colors.length]} 
+                  ${size.padding}
+                  rounded-xl shadow-xl w-full h-full 
+                  transition-all duration-500 
+                  ${
+                    anim.has(i)
+                      ? "opacity-0 scale-90"
+                      : "opacity-100 scale-100"
+                  }
+                `}
               >
-                <div
-                  className={`${colorClass} ${rotationClass} rounded-lg shadow-xl ${sizeConfig.padding} transform transition-all duration-700 relative w-full h-full hover:scale-105 hover:shadow-2xl hover:rotate-0 ${
-                    animatingNotes.has(position) ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}
-                >
-                  <div
-                    className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-12 h-5 bg-white/60 rounded-sm"
-                    style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08)' }}
-                  />
-
-                  <div className="space-y-3 flex flex-col h-full">
-                    <div className="flex items-start gap-2 flex-1">
-                      <Heart className="w-4 h-4 text-red-500 shrink-0 mt-1" fill="currentColor" />
-                      <p className={`${sizeConfig.text} text-gray-800 leading-snug line-clamp-6`}>
-                        {message.emoji ? `${message.emoji} ` : ''}
-                        {message.message}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-600">
-                        To: <span className="text-orange-600">{message.toName}</span>
-                      </p>
-                      <p className="text-xs text-gray-700 italic text-right">
-                        — {message.fromName}
-                      </p>
-                    </div>
+                <div className="space-y-2 flex flex-col h-full">
+                  <div className="flex gap-2 flex-1">
+                    <Heart
+                      className="w-4 h-4 text-red-500 mt-1"
+                      fill="currentColor"
+                    />
+                    <p className={`${size.text} text-gray-800 leading-snug`}>
+                      {m.emoji ?? ""} {m.message}
+                    </p>
                   </div>
 
-                  <div className="absolute bottom-0 right-0 w-0 h-0 border-l-20 border-l-transparent border-b-20 border-b-gray-400/20 rounded-bl-lg" />
+                  <div className="text-right text-xs text-gray-600">
+                    — {m.fromName} → {m.toName}
+                  </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
-
-      <style>{`
-        @media (max-width: 640px) {
-          .line-clamp-6 { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
-        }
-      `}</style>
     </div>
   );
 }

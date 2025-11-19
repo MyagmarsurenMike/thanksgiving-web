@@ -6,6 +6,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import StickyNotesBoard from '../../components/StickyNotesBoard';
 import SubmitMessageModal from '../../components/SubmitMessageModal';
 import img from "../../public/LOGO nmk.png";
+import img1 from "../../public/logosm.webp"
 
 const { Text } = Typography;
 
@@ -72,43 +73,54 @@ export default function HomePage() {
     <div className="min-h-screen thanksgiving-bg-main">
       {/* FIXED HEADER */}
       <div className="fixed top-0 left-0 w-full z-50 thanksgiving-bg-hero border-b border-orange-200 shadow-md">
-        <div className="max-w-full mx-auto px-4 py-3 sm:py-4 md:py-6 flex items-center justify-between">
-          {/* Logo Left */}
-          <div className="shrink-0">
-            <img
-              src={img.src}
-              alt="Logo"
-              className="h-20 sm:h-20 md:h-20 object-contain"
-            />
-          </div>
+  <div className="max-w-full mx-auto px-4 py-3 sm:py-4 md:py-6">
 
-          {/* Title */}
-          <div className="flex-1 text-center mx-4">
-            <h1 className="text-orange-800 text-lg sm:text-2xl md:text-4xl font-bold leading-tight">
-              ❤️ Талархлын баяр 2025 ❤️
-            </h1>
-            <p className="text-blue-500 text-xs sm:text-sm md:text-lg">
-              VIII үеийн оюутнууд эрдмийн замд чиглүүлсэн эрхэм багш нартаа талархлын мэндчилгээ дэвшүүлж байна.
-            </p>
-          </div>
+    {/* 3 COLUMN GRID */}
+    <div className="grid grid-cols-3 items-center">
 
-          {/* Button Right */}
-          <div className="shrink-0">
-            {typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent) && (
-              <Button
-              type="primary"
-              size="large"
-              icon={<PlusOutlined />}
-              onClick={() => setModalVisible(true)}
-              className="h-10 sm:h-12 md:h-14 px-3 sm:px-6 rounded-full flex items-center"
-              >
-              <span className="hidden sm:inline"></span>
-              </Button>
-            )}
-          </div>
-
-        </div>
+      {/* LEFT: Responsive Logo */}
+      <div className="flex items-center">
+        {/* Mobile Logo */}
+        <img
+          src={img1.src}
+          alt="Mobile Logo"
+          className="h-8 object-contain block sm:hidden"
+        />
+        {/* Desktop Logo */}
+        <img
+          src={img.src}
+          alt="Desktop Logo"
+          className="h-20 sm:h-12 md:h-20 object-contain hidden sm:block"
+        />
       </div>
+
+      {/* CENTER: Title */}
+      <div className="text-center">
+        <h1 className="text-orange-800 text-lg sm:text-2xl md:text-4xl font-bold leading-tight">
+          🦃 Талархлын баяр 2025 🍂
+        </h1>
+       <p className="hidden sm:block text-orange-700 text-sm md:text-lg">
+  Энэ жилийн Талархлын баяраар юунд талархаж байгаагаа хуваалцаарай
+</p>
+      </div>
+
+      {/* RIGHT: Button */}
+      <div className="flex justify-end items-center">
+        <Button
+          type="primary"
+          size="large"
+          icon={<PlusOutlined />}
+          onClick={() => setModalVisible(true)}
+          className="h-10 sm:h-12 md:h-14 px-3 sm:px-6 rounded-full flex items-center"
+        >
+          <span className="hidden sm:inline"></span>
+        </Button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
       {/* PAGE CONTENT */}
       <div className="pt-40 pb-20 max-w-7xl mx-auto px-4">
 
