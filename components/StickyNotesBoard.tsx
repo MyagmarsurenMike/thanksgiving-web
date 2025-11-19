@@ -65,18 +65,14 @@ export default function StickyNotesBoard({ messages }: Props) {
     return () => window.removeEventListener("resize", resize);
   }, [messages.length]);
 
-  // Main loop with unique messages
+  // Main loop with staggered updates
   useEffect(() => {
     if (messages.length === 0) return;
 
     const interval = setInterval(() => {
       setNoteData(prev => {
         const now = Date.now();
-
-        // track currently shown messages
         const currentlyShown = new Set(prev.map(n => messages[n.messageIndex]?._id));
-
-        // prepare next indices to avoid duplicates
         const nextIndices: number[] = [];
         const usedIds = new Set<string>(currentlyShown);
 
@@ -88,8 +84,8 @@ export default function StickyNotesBoard({ messages }: Props) {
           }
 
           const timeVisible = now - note.lastChange;
-          const minTime = 15000;
-          const extraTime = Math.min(msg.message.length * 50, 20000);
+          const minTime = 10000; // each note stays at least 10 seconds
+          const extraTime = Math.min(msg.message.length * 50, 5000); // extra up to 5 sec
           const requiredVisibleTime = minTime + extraTime;
 
           if (timeVisible < requiredVisibleTime) {
@@ -97,7 +93,7 @@ export default function StickyNotesBoard({ messages }: Props) {
             return;
           }
 
-          // find next unique message
+          // choose next unique message
           let nextIndex = note.messageIndex;
           for (let i = 0; i < messages.length; i++) {
             nextIndex = (nextIndex + 1) % messages.length;
@@ -105,15 +101,18 @@ export default function StickyNotesBoard({ messages }: Props) {
           }
           usedIds.add(messages[nextIndex]._id);
 
-          // start animation
-          setAnimating(a => new Set(a).add(position));
+          // stagger animation with random delay between 0–1s
+          const delay = Math.random() * 1000;
           setTimeout(() => {
-            setAnimating(a => {
-              const t = new Set(a);
-              t.delete(position);
-              return t;
-            });
-          }, 600);
+            setAnimating(a => new Set(a).add(position));
+            setTimeout(() => {
+              setAnimating(a => {
+                const t = new Set(a);
+                t.delete(position);
+                return t;
+              });
+            }, 600);
+          }, delay);
 
           nextIndices.push(nextIndex);
         });
