@@ -24,3 +24,17 @@ jobs:
 
       - name: Push the Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/thanksgiving-web:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull image from DockerHub
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/thanksgiving-web:latest
+      - name: Delete old Docker container
+        run: docker rm -f thanksgiving-web-container || true
+      - name: Run Docker container
+        run: docker run -d -p 3000:3000 --name thanksgiving-web-container -e MONGODB_URI="${{ secrets.MONGODB_URI }}" -e NEXT_PUBLIC_BASE_URL="${{ secrets.NEXT_PUBLIC_BASE_URL }}" ${{ secrets.DOCKER_USERNAME }}/thanksgiving-web:latest
+      - name: Clean up old Docker images
+        if: always()
+        run: docker image prune -af
