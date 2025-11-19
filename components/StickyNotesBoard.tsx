@@ -49,16 +49,6 @@ export default function StickyNotesBoard({ messages }: Props) {
 
   const [animating, setAnimating] = useState<Set<number>>(new Set());
 
-  // 🟠 prevents duplicates
-  const getNextUniqueMessageIndex = (usedIds: Set<string>, current: number) => {
-    let idx = current;
-    for (let i = 0; i < messages.length; i++) {
-      idx = (idx + 1) % messages.length;
-      if (!usedIds.has(messages[idx]._id)) return idx;
-    }
-    return idx; // fallback (should never happen)
-  };
-
   // Resize handler
   useEffect(() => {
     const resize = () => {
@@ -75,33 +65,48 @@ export default function StickyNotesBoard({ messages }: Props) {
     return () => window.removeEventListener("resize", resize);
   }, [messages.length]);
 
-  // Main loop
+  // Main loop with unique messages
   useEffect(() => {
     if (messages.length === 0) return;
 
     const interval = setInterval(() => {
       setNoteData(prev => {
         const now = Date.now();
-        const currentlyShown = new Set(
-          prev.map(n => messages[n.messageIndex]?._id)
-        );
 
-        return prev.map((note, position) => {
+        // track currently shown messages
+        const currentlyShown = new Set(prev.map(n => messages[n.messageIndex]?._id));
+
+        // prepare next indices to avoid duplicates
+        const nextIndices: number[] = [];
+        const usedIds = new Set<string>(currentlyShown);
+
+        prev.forEach((note, position) => {
           const msg = messages[note.messageIndex];
-          if (!msg) return note;
+          if (!msg) {
+            nextIndices.push(note.messageIndex);
+            return;
+          }
 
           const timeVisible = now - note.lastChange;
-
-          // long messages stay longer
           const minTime = 15000;
-const extraTime = Math.min(msg.message.length * 50, 20000);
-const requiredVisibleTime = minTime + extraTime;
+          const extraTime = Math.min(msg.message.length * 50, 20000);
+          const requiredVisibleTime = minTime + extraTime;
 
-          if (timeVisible < requiredVisibleTime) return note;
+          if (timeVisible < requiredVisibleTime) {
+            nextIndices.push(note.messageIndex);
+            return;
+          }
+
+          // find next unique message
+          let nextIndex = note.messageIndex;
+          for (let i = 0; i < messages.length; i++) {
+            nextIndex = (nextIndex + 1) % messages.length;
+            if (!usedIds.has(messages[nextIndex]._id)) break;
+          }
+          usedIds.add(messages[nextIndex]._id);
 
           // start animation
           setAnimating(a => new Set(a).add(position));
-
           setTimeout(() => {
             setAnimating(a => {
               const t = new Set(a);
@@ -110,19 +115,13 @@ const requiredVisibleTime = minTime + extraTime;
             });
           }, 600);
 
-          // get unique next message
-          const nextIndex = getNextUniqueMessageIndex(
-            currentlyShown,
-            note.messageIndex
-          );
-
-          currentlyShown.add(messages[nextIndex]._id);
-
-          return {
-            messageIndex: nextIndex,
-            lastChange: now
-          };
+          nextIndices.push(nextIndex);
         });
+
+        return prev.map((note, i) => ({
+          messageIndex: nextIndices[i],
+          lastChange: note.messageIndex === nextIndices[i] ? note.lastChange : now
+        }));
       });
     }, 1000);
 
@@ -139,7 +138,6 @@ const requiredVisibleTime = minTime + extraTime;
   return (
     <div className="h-auto px-2 sm:px-4 py-4 overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 auto-rows-min">
-
         {noteData.map((note, position) => {
           const message = messages[note.messageIndex];
           const color = stickyColors[note.messageIndex % stickyColors.length];
@@ -148,7 +146,6 @@ const requiredVisibleTime = minTime + extraTime;
 
           return (
             <div key={position} className={`flex items-center justify-center ${size.wrapper}`}>
-
               <div
                 className={`
                   ${color} ${rotate} ${size.padding} rounded-lg shadow-lg 
@@ -157,7 +154,6 @@ const requiredVisibleTime = minTime + extraTime;
                 `}
                 style={{ minHeight: size.minHeight }}
               >
-
                 <div className="space-y-3 flex flex-col h-full">
                   <div className="flex items-start gap-2 flex-1">
                     <Heart className="w-4 h-4 text-red-500 mt-1" fill="currentColor" />
@@ -166,21 +162,17 @@ const requiredVisibleTime = minTime + extraTime;
                       {message.message}
                     </p>
                   </div>
-
                   <div className="text-xs text-gray-600">
                     To: <span className="text-orange-600">{message.toName}</span>
                   </div>
-
                   <p className="text-xs text-right italic text-gray-700">
                     — {message.fromName}
                   </p>
                 </div>
-
               </div>
             </div>
           );
         })}
-
       </div>
     </div>
   );
