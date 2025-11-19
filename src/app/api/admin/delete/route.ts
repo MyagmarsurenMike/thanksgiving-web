@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../../lib/mongodb';
 import Message from '../../../../../models/Message';
+import { emitMessageRefresh } from '../../../../../lib/socket';
 
 // DELETE /api/admin/delete - Delete a message permanently
 export async function DELETE(request: NextRequest) {
@@ -24,6 +25,7 @@ export async function DELETE(request: NextRequest) {
         { status: 404 }
       );
     }
+    emitMessageRefresh();
     
     return NextResponse.json({
       message: 'Message deleted successfully'

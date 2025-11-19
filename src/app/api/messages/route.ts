@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../lib/mongodb';
 import Message from '../../../../models/Message';
+import { emitMessageRefresh } from '../../../../lib/socket';
 
 // GET /api/messages - Return ONLY approved messages
 export async function GET() {
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
     });
     
     await newMessage.save();
+    emitMessageRefresh();
     
     return NextResponse.json(
       { message: 'Message submitted successfully and is pending approval' },
