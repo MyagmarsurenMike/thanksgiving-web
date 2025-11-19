@@ -13,6 +13,7 @@ COPY next.config.ts ./
 COPY package.json ./
 COPY postcss.config.mjs ./
 COPY tsconfig.json ./
+COPY logo.webp ./
 
 RUN npm install
 RUN npm run build
