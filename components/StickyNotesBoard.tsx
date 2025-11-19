@@ -65,66 +65,59 @@ export default function StickyNotesBoard({ messages }: Props) {
     return () => window.removeEventListener("resize", resize);
   }, [messages.length]);
 
-  // Main loop with staggered updates
+  // Update each note independently
   useEffect(() => {
     if (messages.length === 0) return;
 
-    const interval = setInterval(() => {
-      setNoteData(prev => {
+    noteData.forEach((note, position) => {
+      const updateNote = () => {
+        const msg = messages[note.messageIndex];
+        if (!msg) return;
+
         const now = Date.now();
-        const currentlyShown = new Set(prev.map(n => messages[n.messageIndex]?._id));
-        const nextIndices: number[] = [];
-        const usedIds = new Set<string>(currentlyShown);
+        const timeVisible = now - note.lastChange;
+        const minTime = 10000; // 10 seconds
+        const extraTime = Math.min(msg.message.length * 50, 5000);
+        const requiredVisibleTime = minTime + extraTime;
 
-        prev.forEach((note, position) => {
-          const msg = messages[note.messageIndex];
-          if (!msg) {
-            nextIndices.push(note.messageIndex);
-            return;
-          }
+        if (timeVisible < requiredVisibleTime) {
+          // retry later
+          setTimeout(updateNote, requiredVisibleTime - timeVisible);
+          return;
+        }
 
-          const timeVisible = now - note.lastChange;
-          const minTime = 10000; // each note stays at least 10 seconds
-          const extraTime = Math.min(msg.message.length * 50, 5000); // extra up to 5 sec
-          const requiredVisibleTime = minTime + extraTime;
+        // find next unique message
+        const usedIds = new Set(noteData.map(n => messages[n.messageIndex]?._id));
+        let nextIndex = note.messageIndex;
+        for (let i = 0; i < messages.length; i++) {
+          nextIndex = (nextIndex + 1) % messages.length;
+          if (!usedIds.has(messages[nextIndex]._id)) break;
+        }
 
-          if (timeVisible < requiredVisibleTime) {
-            nextIndices.push(note.messageIndex);
-            return;
-          }
+        // animate
+        setAnimating(a => new Set(a).add(position));
+        setTimeout(() => {
+          setAnimating(a => {
+            const t = new Set(a);
+            t.delete(position);
+            return t;
+          });
+        }, 600);
 
-          // choose next unique message
-          let nextIndex = note.messageIndex;
-          for (let i = 0; i < messages.length; i++) {
-            nextIndex = (nextIndex + 1) % messages.length;
-            if (!usedIds.has(messages[nextIndex]._id)) break;
-          }
-          usedIds.add(messages[nextIndex]._id);
+        // update state only for this note
+        setNoteData(prev => prev.map((n, idx) => idx === position ? {
+          messageIndex: nextIndex,
+          lastChange: now
+        } : n));
 
-          // stagger animation with random delay between 0–1s
-          const delay = Math.random() * 1000;
-          setTimeout(() => {
-            setAnimating(a => new Set(a).add(position));
-            setTimeout(() => {
-              setAnimating(a => {
-                const t = new Set(a);
-                t.delete(position);
-                return t;
-              });
-            }, 600);
-          }, delay);
+        // schedule next update for this note
+        setTimeout(updateNote, minTime + extraTime);
+      };
 
-          nextIndices.push(nextIndex);
-        });
-
-        return prev.map((note, i) => ({
-          messageIndex: nextIndices[i],
-          lastChange: note.messageIndex === nextIndices[i] ? note.lastChange : now
-        }));
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
+      // stagger initial updates with random delay
+      const initialDelay = Math.random() * 3000; // 0–3s
+      setTimeout(updateNote, initialDelay);
+    });
   }, [messages]);
 
   if (messages.length === 0)
