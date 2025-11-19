@@ -65,59 +65,32 @@ export default function StickyNotesBoard({ messages }: Props) {
     return () => window.removeEventListener("resize", resize);
   }, [messages.length]);
 
-  // Update each note independently
+  // Rotate messages every 10s
   useEffect(() => {
     if (messages.length === 0) return;
+    if (messages.length === 1) return; // only one message, nothing to rotate
 
-    noteData.forEach((note, position) => {
-      const updateNote = () => {
-        const msg = messages[note.messageIndex];
-        if (!msg) return;
+    const interval = setInterval(() => {
+      setNoteData(prev => {
+        const usedIds = new Set<string>();
+        const nextData = prev.map(note => {
+          let nextIndex = note.messageIndex;
+          // find next message that is not already used
+          for (let i = 1; i <= messages.length; i++) {
+            nextIndex = (note.messageIndex + i) % messages.length;
+            if (!usedIds.has(messages[nextIndex]._id)) break;
+          }
+          usedIds.add(messages[nextIndex]._id);
+          return {
+            messageIndex: nextIndex,
+            lastChange: Date.now()
+          };
+        });
+        return nextData;
+      });
+    }, 10000); // 10 seconds
 
-        const now = Date.now();
-        const timeVisible = now - note.lastChange;
-        const minTime = 10000; // 10 seconds
-        const extraTime = Math.min(msg.message.length * 50, 5000);
-        const requiredVisibleTime = minTime + extraTime;
-
-        if (timeVisible < requiredVisibleTime) {
-          // retry later
-          setTimeout(updateNote, requiredVisibleTime - timeVisible);
-          return;
-        }
-
-        // find next unique message
-        const usedIds = new Set(noteData.map(n => messages[n.messageIndex]?._id));
-        let nextIndex = note.messageIndex;
-        for (let i = 0; i < messages.length; i++) {
-          nextIndex = (nextIndex + 1) % messages.length;
-          if (!usedIds.has(messages[nextIndex]._id)) break;
-        }
-
-        // animate
-        setAnimating(a => new Set(a).add(position));
-        setTimeout(() => {
-          setAnimating(a => {
-            const t = new Set(a);
-            t.delete(position);
-            return t;
-          });
-        }, 600);
-
-        // update state only for this note
-        setNoteData(prev => prev.map((n, idx) => idx === position ? {
-          messageIndex: nextIndex,
-          lastChange: now
-        } : n));
-
-        // schedule next update for this note
-        setTimeout(updateNote, minTime + extraTime);
-      };
-
-      // stagger initial updates with random delay
-      const initialDelay = Math.random() * 3000; // 0–3s
-      setTimeout(updateNote, initialDelay);
-    });
+    return () => clearInterval(interval);
   }, [messages]);
 
   if (messages.length === 0)
@@ -142,7 +115,6 @@ export default function StickyNotesBoard({ messages }: Props) {
                 className={`
                   ${color} ${rotate} ${size.padding} rounded-lg shadow-lg 
                   transition-all duration-700 w-full h-full transform
-                  ${animating.has(position) ? "opacity-0 scale-95" : "opacity-100"}
                 `}
                 style={{ minHeight: size.minHeight }}
               >
