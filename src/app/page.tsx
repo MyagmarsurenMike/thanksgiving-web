@@ -5,7 +5,7 @@ import { Button, Empty, Spin, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import StickyNotesBoard from '../../components/StickyNotesBoard';
 import SubmitMessageModal from '../../components/SubmitMessageModal';
-import img from "../../logo.webp"
+import img from "../../public/LOGO nmk.png";
 
 const { Text } = Typography;
 
@@ -22,63 +22,41 @@ export default function HomePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const AUTO_REFRESH_INTERVAL = 30000; // 30 секунд
-
-  // Fake messages for testing
-  const fakeMessages: Message[] = [
-    {
-      _id: '1',
-      fromName: 'Бат',
-      toName: 'Багш',
-      message: 'Энэ жилийн Талархлын баяраар олон сайхан зүйлд баярлаж байна!  🧡',
-      emoji: '🦃',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: '2',
-      fromName: 'Мөнх',
-      toName: 'Бүх хүн',
-      message: 'Багш нарт болон найз нарт баярлалаа! 🌟',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: '3',
-      fromName: 'Сэргэлэн',
-      toName: 'Бүх хүн',
-      message: 'Өнөөдрийн баяр сайхан өнгөрөөсэй! 🍂',
-      emoji: '🍂',
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  const AUTO_REFRESH_INTERVAL = 100000; // 1 minute
 
   const fetchMessages = async () => {
     try {
       setLoading(true);
 
-      setTimeout(() => {
-        setMessages(fakeMessages);
-        setLoading(false);
-      }, 1000); // simulate network delay
+      const response = await fetch("/api/messages");
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+
+      setMessages(await response.json());
+      setLoading(false);
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error(error);
       setLoading(false);
     }
   };
 
   const fetchMessagesQuietly = async () => {
     try {
-      setMessages(fakeMessages);
+      const response = await fetch("/api/messages");
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+
+      setMessages(await response.json());
     } catch (error) {
       console.error('Error refreshing messages:', error);
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
   // Auto refresh
   useEffect(() => {
+    fetchMessages();
     const id = setInterval(() => {
       fetchMessagesQuietly();
     }, AUTO_REFRESH_INTERVAL);
@@ -92,27 +70,25 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen thanksgiving-bg-main">
-
       {/* FIXED HEADER */}
       <div className="fixed top-0 left-0 w-full z-50 thanksgiving-bg-hero border-b border-orange-200 shadow-md">
         <div className="max-w-full mx-auto px-4 py-3 sm:py-4 md:py-6 flex items-center justify-between">
-
           {/* Logo Left */}
           <div className="shrink-0">
             <img
               src={img.src}
               alt="Logo"
-              className="h-10 sm:h-12 md:h-16 object-contain"
+              className="h-20 sm:h-20 md:h-20 object-contain"
             />
           </div>
 
           {/* Title */}
           <div className="flex-1 text-center mx-4">
             <h1 className="text-orange-800 text-lg sm:text-2xl md:text-4xl font-bold leading-tight">
-              🦃 Талархлын баяр 2025 🍂
+              ❤️ Талархлын баяр 2025 ❤️
             </h1>
-            <p className="text-orange-700 text-xs sm:text-sm md:text-lg">
-              Энэ жилийн Талархлын баяраар юунд талархаж байгаагаа хуваалцаарай
+            <p className="text-blue-500 text-xs sm:text-sm md:text-lg">
+              VIII үеийн оюутнууд эрдмийн замд чиглүүлсэн эрхэм багш нартаа талархлын мэндчилгээ дэвшүүлж байна.
             </p>
           </div>
 
@@ -169,14 +145,13 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-
         ) : (
           <>
             <StickyNotesBoard messages={messages} />
 
             <div className="text-center mt-12">
               <p className="text-orange-700 text-xl font-medium mb-4">
-                Танд талархах зүйл байна уу?
+                Та ч бас талархлын мэндчилгээгээ илгээгээрэй.
               </p>
               <Button
                 type="primary"
@@ -197,7 +172,7 @@ export default function HomePage() {
       <footer className="thanksgiving-footer py-8">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <p className="thanksgiving-footer-text">
-            Бүх хүмүүст талархал, баяр жаргалаар дүүрэн Талархлын баяр болтугай! 🧡
+            Талархал илгээсэнд баярлалаа. 🧡
           </p>
           <p className="mt-2 text-sm text-orange-600">
             Сайтыг хийсэн: 8-р үеийн оюутнууд
