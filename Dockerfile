@@ -2,9 +2,9 @@
 FROM node:20 AS deps
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+# Install all dependencies (production and development) for the builder stage
+COPY package.json ./
+RUN npm install
 
 # Rebuild the source code only when needed
 FROM node:20 AS builder
@@ -16,7 +16,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Build the application (without any environment variables)
+# Build the application - now has access to TypeScript and other dev dependencies
 RUN npm run build
 
 # Production image, copy all the files and run next
