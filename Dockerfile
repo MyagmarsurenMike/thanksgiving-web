@@ -1,21 +1,59 @@
-FROM node:22-alpine
-
+# Multi-stage build for better optimization and smaller final image
+FROM node:20 AS deps
 WORKDIR /app
-COPY components components
-COPY lib lib
-COPY models models
-COPY public public
-COPY scripts scripts
-COPY src src
-COPY types types
-COPY eslint.config.mjs ./
-COPY next.config.ts ./
-COPY package.json ./
-COPY postcss.config.mjs ./
-COPY tsconfig.json ./
-COPY logo.webp ./
 
+# Install all dependencies (production and development) for the builder stage
+COPY package.json ./
 RUN npm install
+
+# Rebuild the source code only when needed
+FROM node:20 AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Accept build argument for public base URL
+ARG NEXT_PUBLIC_BASE_URL
+ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+
+# Set basic environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Build the application - now has access to TypeScript and other dev dependencies
 RUN npm run build
 
-CMD ["npm", "run", "start"]
+# Production image, copy all the files and run next
+FROM node:20-slim AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Create a non-root user
+RUN groupadd --gid 1001 nodejs
+RUN useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home nextjs
+
+# Copy the public folder
+COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# All environment variables will be provided at runtime
+# ENV NEXT_PUBLIC_BASE_URL, ENV MONGODB_URI and ENV JWT_SECRET should be set via docker run -e or docker-compose
+
+CMD ["node", "server.js"]

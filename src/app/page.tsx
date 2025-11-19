@@ -94,15 +94,17 @@ export default function HomePage() {
 
           {/* Button Right */}
           <div className="shrink-0">
-            <Button
+            {typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent) && (
+              <Button
               type="primary"
               size="large"
               icon={<PlusOutlined />}
               onClick={() => setModalVisible(true)}
               className="h-10 sm:h-12 md:h-14 px-3 sm:px-6 rounded-full flex items-center"
-            >
+              >
               <span className="hidden sm:inline"></span>
-            </Button>
+              </Button>
+            )}
           </div>
 
         </div>
