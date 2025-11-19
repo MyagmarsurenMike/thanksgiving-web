@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "admin_setup": "tsx scripts/admin_setup.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",

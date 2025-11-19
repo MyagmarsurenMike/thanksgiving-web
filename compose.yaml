@@ -1,0 +1,27 @@
+services:
+  server:
+    build: .
+    container_name: thanksgiving_app
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      MONGODB_URI: "mongodb://db:27017/thanksgiving_messages"
+    networks:
+      - private
+    depends_on:
+      - db
+  db:
+    image: mongo:8.2.1
+    restart: unless-stopped
+    volumes:
+      - mongo:/data/db
+    networks:
+      - private
+
+networks:
+  private:
+    driver: bridge
+
+volumes:
+  mongo:

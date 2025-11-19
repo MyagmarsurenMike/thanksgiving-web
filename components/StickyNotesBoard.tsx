@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 
 interface Message {
@@ -36,14 +36,14 @@ const rotations = [
   '-rotate-12',
 ];
 
+// smaller notes for web
 const noteSizes = [
-  { wrapper: 'col-span-1 row-span-1', padding: 'p-4', text: 'text-sm', minHeight: 140 },
-  { wrapper: 'col-span-1 row-span-1', padding: 'p-5', text: 'text-base', minHeight: 160 },
-  { wrapper: 'col-span-1 row-span-2', padding: 'p-6', text: 'text-base', minHeight: 180 },
+  { wrapper: 'col-span-1 row-span-1', padding: 'p-2', text: 'text-xs', minHeight: 100 },
+  { wrapper: 'col-span-1 row-span-1', padding: 'p-3', text: 'text-sm', minHeight: 120 },
+  { wrapper: 'col-span-1 row-span-2', padding: 'p-4', text: 'text-sm', minHeight: 140 },
 ];
 
 export default function StickyNotesBoard({ messages }: Props) {
-  // determine number of notes shown based on viewport width (responsive)
   const getNotesCount = () => {
     if (typeof window === 'undefined') return 12;
     const w = window.innerWidth;
@@ -58,12 +58,10 @@ export default function StickyNotesBoard({ messages }: Props) {
   );
   const [animatingNotes, setAnimatingNotes] = useState<Set<number>>(new Set());
 
-  // recalc when messages change (reset indices safely)
   useEffect(() => {
     setNoteIndices(Array.from({ length: NOTES_COUNT }, (_, i) => i % Math.max(1, messages.length)));
   }, [messages.length, NOTES_COUNT]);
 
-  // adjust NOTES_COUNT on resize
   useEffect(() => {
     const handleResize = () => {
       const next = getNotesCount();
@@ -81,21 +79,17 @@ export default function StickyNotesBoard({ messages }: Props) {
     const intervals: number[] = [];
 
     for (let position = 0; position < NOTES_COUNT; position++) {
-      // randomize each note's update interval (8-15s)
       const randomDelay = Math.random() * 7000 + 8000;
       const id = window.setInterval(() => {
-        // animate out
         setAnimatingNotes((prev) => new Set(prev).add(position));
 
         setTimeout(() => {
           setNoteIndices((prev) => {
             const newIndices = [...prev];
-            // advance index by NOTES_COUNT (so different positions cycle through list)
             newIndices[position] = (newIndices[position] + 1) % messages.length;
             return newIndices;
           });
 
-          // end animation
           setTimeout(() => {
             setAnimatingNotes((prev) => {
               const next = new Set(prev);
@@ -115,7 +109,7 @@ export default function StickyNotesBoard({ messages }: Props) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[240px] px-4">
+      <div className="flex items-center justify-center min-h-60 px-4">
         <div className="text-center">
           <p className="text-xl text-gray-600">Одоогоор мэндчилгээ байхгүй байна.</p>
           <p className="text-gray-500 mt-2">Та эхнийх нь болж мэндчилгээ хуваалцаарай 🍁</p>
@@ -150,7 +144,6 @@ export default function StickyNotesBoard({ messages }: Props) {
                   }`}
                   style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}
                 >
-                  {/* tape at top */}
                   <div
                     className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-12 h-5 bg-white/60 rounded-sm"
                     style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08)' }}
@@ -158,9 +151,8 @@ export default function StickyNotesBoard({ messages }: Props) {
 
                   <div className="space-y-3 flex flex-col h-full">
                     <div className="flex items-start gap-2 flex-1">
-                      <Heart className="w-4 h-4 text-red-500 flex-shrink-0 mt-1" fill="currentColor" />
+                      <Heart className="w-4 h-4 text-red-500 shrink-0 mt-1" fill="currentColor" />
                       <p className={`${sizeConfig.text} text-gray-800 leading-snug line-clamp-6`}>
-                        {/* show emoji inline if present */}
                         {message.emoji ? `${message.emoji} ` : ''}
                         {message.message}
                       </p>
@@ -176,8 +168,7 @@ export default function StickyNotesBoard({ messages }: Props) {
                     </div>
                   </div>
 
-                  {/* corner fold */}
-                  <div className="absolute bottom-0 right-0 w-0 h-0 border-l-[20px] border-l-transparent border-b-[20px] border-b-gray-400/20 rounded-bl-lg" />
+                  <div className="absolute bottom-0 right-0 w-0 h-0 border-l-20 border-l-transparent border-b-20 border-b-gray-400/20 rounded-bl-lg" />
                 </div>
               </div>
             );
@@ -185,7 +176,6 @@ export default function StickyNotesBoard({ messages }: Props) {
         </div>
       </div>
 
-      {/* small CSS for fade animation (keeps file self-contained) */}
       <style>{`
         @media (max-width: 640px) {
           .line-clamp-6 { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }

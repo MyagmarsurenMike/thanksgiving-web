@@ -24,7 +24,7 @@ export async function login(username: string, password: string) {
       name: "session",
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "lax",
       path: "/",
       expires: expiresAt
