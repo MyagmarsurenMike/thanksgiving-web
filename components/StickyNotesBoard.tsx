@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { Heart } from 'lucide-react';
 
 interface Message {
   _id: string;
@@ -14,137 +14,173 @@ interface Props {
   messages: Message[];
 }
 
-const smallNote = {
-  wrapper: "col-span-1 row-span-1",
-  padding: "p-3",
-  text: "text-sm",
-  minHeight: 120,
-};
-
-const bigNote = {
-  wrapper: "col-span-2 row-span-2",
-  padding: "p-4",
-  text: "text-base",
-  minHeight: 220,
-};
-
-const colors = [
-  "bg-yellow-200",
-  "bg-pink-200",
-  "bg-blue-200",
-  "bg-green-200",
-  "bg-purple-200",
-  "bg-orange-200",
+const stickyColors = [
+  'bg-yellow-200', 'bg-pink-200', 'bg-blue-200',
+  'bg-green-200', 'bg-purple-200', 'bg-orange-200'
 ];
 
-const NOTES_COUNT = 12;
+const rotations = [
+  'rotate-1', '-rotate-2', 'rotate-2', '-rotate-1',
+  'rotate-3', '-rotate-3', 'rotate-6', '-rotate-6'
+];
 
-interface NoteState {
-  msgIndex: number;
-  remaining: number; // ms remaining to show
-}
+const noteSizes = [
+  { wrapper: 'col-span-1 row-span-1', padding: 'p-2', text: 'text-xs', minHeight: 100 },
+  { wrapper: 'col-span-1 row-span-1', padding: 'p-3', text: 'text-sm', minHeight: 120 },
+  { wrapper: 'col-span-1 row-span-2', padding: 'p-4', text: 'text-sm', minHeight: 140 },
+];
 
 export default function StickyNotesBoard({ messages }: Props) {
-  const [notes, setNotes] = useState<NoteState[]>([]);
+  const getNotesCount = () => {
+    if (typeof window === 'undefined') return 12;
+    const w = window.innerWidth;
+    if (w < 640) return 9;
+    if (w < 1024) return 12;
+    return 15;
+  };
 
-  // initialize notes with unique messages
+  const [NOTES_COUNT, setNOTES_COUNT] = useState(getNotesCount());
+  const [noteData, setNoteData] = useState(
+    () => Array.from({ length: NOTES_COUNT }).map((_, i) => ({
+      messageIndex: i % messages.length,
+      lastChange: Date.now()
+    }))
+  );
+
+  const [animating, setAnimating] = useState<Set<number>>(new Set());
+
+  // 🟠 prevents duplicates
+  const getNextUniqueMessageIndex = (usedIds: Set<string>, current: number) => {
+    let idx = current;
+    for (let i = 0; i < messages.length; i++) {
+      idx = (idx + 1) % messages.length;
+      if (!usedIds.has(messages[idx]._id)) return idx;
+    }
+    return idx; // fallback (should never happen)
+  };
+
+  // Resize handler
+  useEffect(() => {
+    const resize = () => {
+      const count = getNotesCount();
+      setNOTES_COUNT(count);
+      setNoteData(
+        Array.from({ length: count }).map((_, i) => ({
+          messageIndex: i % messages.length,
+          lastChange: Date.now()
+        }))
+      );
+    };
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [messages.length]);
+
+  // Main loop
   useEffect(() => {
     if (messages.length === 0) return;
 
-    const arr = [...messages.keys()];
-    const initialNotes: NoteState[] = [];
-
-    for (let i = 0; i < NOTES_COUNT; i++) {
-      if (arr.length === 0) break;
-      const r = Math.floor(Math.random() * arr.length);
-      const msgIndex = arr[r];
-      arr.splice(r, 1);
-
-      const isLong = messages[msgIndex].message.length > 120;
-      const duration = isLong ? 20000 : 12000 + Math.random() * 5000;
-
-      initialNotes.push({ msgIndex, remaining: duration });
-    }
-
-    setNotes(initialNotes);
-  }, [messages]);
-
-  // interval to reduce remaining time
-  useEffect(() => {
     const interval = setInterval(() => {
-      setNotes((prev) =>
-        prev.map((n) => {
-          const newRemaining = n.remaining - 1000; // 1 sec
-          if (newRemaining <= 0) {
-            // pick new unique message
-            const used = prev.map((x) => x.msgIndex);
-            const available = messages
-              .map((_, i) => i)
-              .filter((i) => !used.includes(i));
+      setNoteData(prev => {
+        const now = Date.now();
+        const currentlyShown = new Set(
+          prev.map(n => messages[n.messageIndex]?._id)
+        );
 
-            const newIndex =
-              available.length > 0
-                ? available[Math.floor(Math.random() * available.length)]
-                : n.msgIndex;
+        return prev.map((note, position) => {
+          const msg = messages[note.messageIndex];
+          if (!msg) return note;
 
-            const isLong = messages[newIndex].message.length > 120;
-            const duration = isLong ? 20000 : 12000 + Math.random() * 5000;
+          const timeVisible = now - note.lastChange;
 
-            return { msgIndex: newIndex, remaining: duration };
-          }
-          return { ...n, remaining: newRemaining };
-        })
-      );
+          // long messages stay longer
+          const minTime = 15000;
+const extraTime = Math.min(msg.message.length * 50, 20000);
+const requiredVisibleTime = minTime + extraTime;
+
+          if (timeVisible < requiredVisibleTime) return note;
+
+          // start animation
+          setAnimating(a => new Set(a).add(position));
+
+          setTimeout(() => {
+            setAnimating(a => {
+              const t = new Set(a);
+              t.delete(position);
+              return t;
+            });
+          }, 600);
+
+          // get unique next message
+          const nextIndex = getNextUniqueMessageIndex(
+            currentlyShown,
+            note.messageIndex
+          );
+
+          currentlyShown.add(messages[nextIndex]._id);
+
+          return {
+            messageIndex: nextIndex,
+            lastChange: now
+          };
+        });
+      });
     }, 1000);
 
     return () => clearInterval(interval);
   }, [messages]);
 
-  if (messages.length === 0) return null;
+  if (messages.length === 0)
+    return (
+      <div className="flex items-center justify-center min-h-60 px-4">
+        <p className="text-gray-600 text-lg">Одоогоор мэндчилгээ байхгүй байна.</p>
+      </div>
+    );
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        {notes.map((note, i) => {
-          const m = messages[note.msgIndex];
-          if (!m) return null;
+    <div className="h-auto px-2 sm:px-4 py-4 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 auto-rows-min">
 
-          const isLong = m.message.length > 120;
-          const size = isLong ? bigNote : smallNote;
+        {noteData.map((note, position) => {
+          const message = messages[note.messageIndex];
+          const color = stickyColors[note.messageIndex % stickyColors.length];
+          const rotate = rotations[note.messageIndex % rotations.length];
+          const size = noteSizes[position % noteSizes.length];
 
           return (
-            <div
-              key={i}
-              className={`${size.wrapper} flex items-center justify-center`}
-              style={{ minHeight: size.minHeight }}
-            >
+            <div key={position} className={`flex items-center justify-center ${size.wrapper}`}>
+
               <div
                 className={`
-                  ${colors[note.msgIndex % colors.length]} 
-                  ${size.padding}
-                  rounded-xl shadow-xl w-full h-full 
-                  transition-all duration-700 
+                  ${color} ${rotate} ${size.padding} rounded-lg shadow-lg 
+                  transition-all duration-700 w-full h-full transform
+                  ${animating.has(position) ? "opacity-0 scale-95" : "opacity-100"}
                 `}
+                style={{ minHeight: size.minHeight }}
               >
-                <div className="space-y-2 flex flex-col h-full">
-                  <div className="flex gap-2 flex-1">
-                    <Heart
-                      className="w-4 h-4 text-red-500 mt-1"
-                      fill="currentColor"
-                    />
-                    <p className={`${size.text} text-gray-800 leading-snug`}>
-                      {m.emoji ?? ""} {m.message}
+
+                <div className="space-y-3 flex flex-col h-full">
+                  <div className="flex items-start gap-2 flex-1">
+                    <Heart className="w-4 h-4 text-red-500 mt-1" fill="currentColor" />
+                    <p className={`${size.text} text-gray-800 leading-snug line-clamp-6`}>
+                      {message.emoji ? `${message.emoji} ` : ""}
+                      {message.message}
                     </p>
                   </div>
 
-                  <div className="text-right text-xs text-gray-600">
-                    — {m.fromName} → {m.toName}
+                  <div className="text-xs text-gray-600">
+                    To: <span className="text-orange-600">{message.toName}</span>
                   </div>
+
+                  <p className="text-xs text-right italic text-gray-700">
+                    — {message.fromName}
+                  </p>
                 </div>
+
               </div>
             </div>
           );
         })}
+
       </div>
     </div>
   );
