@@ -20,7 +20,7 @@ jobs:
             password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build the Docker image
-        run: docker build --platform linux/amd64 --tag ${{ secrets.DOCKER_USERNAME }}/thanksgiving-web:latest .
+        run: docker build --platform linux/amd64 --build-arg NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }} --tag ${{ secrets.DOCKER_USERNAME }}/thanksgiving-web:latest .
 
       - name: Push the Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/thanksgiving-web:latest
