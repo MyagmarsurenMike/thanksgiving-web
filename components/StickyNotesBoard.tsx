@@ -37,90 +37,76 @@ const colors = [
   "bg-orange-200",
 ];
 
+const NOTES_COUNT = 12;
+
+interface NoteState {
+  msgIndex: number;
+  remaining: number; // ms remaining to show
+}
+
 export default function StickyNotesBoard({ messages }: Props) {
-  const NOTES_COUNT = 12;
+  const [notes, setNotes] = useState<NoteState[]>([]);
 
-  // unique message index for each position
-  const [positions, setPositions] = useState<number[]>([]);
+  // initialize notes with unique messages
+  useEffect(() => {
+    if (messages.length === 0) return;
 
-  // animation control
-  const [anim, setAnim] = useState<Set<number>>(new Set());
-
-  // UNIQUE SELECTION
-  const pickUnique = () => {
     const arr = [...messages.keys()];
-    const chosen: number[] = [];
+    const initialNotes: NoteState[] = [];
 
     for (let i = 0; i < NOTES_COUNT; i++) {
       if (arr.length === 0) break;
       const r = Math.floor(Math.random() * arr.length);
-      chosen.push(arr[r]);
+      const msgIndex = arr[r];
       arr.splice(r, 1);
+
+      const isLong = messages[msgIndex].message.length > 120;
+      const duration = isLong ? 20000 : 12000 + Math.random() * 5000;
+
+      initialNotes.push({ msgIndex, remaining: duration });
     }
 
-    return chosen;
-  };
+    setNotes(initialNotes);
+  }, [messages]);
 
+  // interval to reduce remaining time
   useEffect(() => {
-    if (messages.length === 0) return;
-
-    setPositions(pickUnique());
-
-    const timers: number[] = [];
-
-    positions.forEach((_, pos) => {
-      const msg = messages[positions[pos]];
-      if (!msg) return;
-
-      const isLong = msg.message.length > 120;
-      const duration = isLong
-        ? 20000 // 20 sec
-        : 10000 + Math.random() * 7000; // 10–17 sec
-
-      const timer = window.setTimeout(() => {
-        setAnim((prev) => new Set(prev).add(pos));
-
-        setTimeout(() => {
-          setPositions((prev) => {
-            const next = [...prev];
-
-            // pick 1 new unique message
+    const interval = setInterval(() => {
+      setNotes((prev) =>
+        prev.map((n) => {
+          const newRemaining = n.remaining - 1000; // 1 sec
+          if (newRemaining <= 0) {
+            // pick new unique message
+            const used = prev.map((x) => x.msgIndex);
             const available = messages
               .map((_, i) => i)
-              .filter((i) => !next.includes(i));
+              .filter((i) => !used.includes(i));
 
-            if (available.length > 0) {
-              const newIndex =
-                available[Math.floor(Math.random() * available.length)];
-              next[pos] = newIndex;
-            }
+            const newIndex =
+              available.length > 0
+                ? available[Math.floor(Math.random() * available.length)]
+                : n.msgIndex;
 
-            return next;
-          });
+            const isLong = messages[newIndex].message.length > 120;
+            const duration = isLong ? 20000 : 12000 + Math.random() * 5000;
 
-          setTimeout(() => {
-            setAnim((prev) => {
-              const s = new Set(prev);
-              s.delete(pos);
-              return s;
-            });
-          }, 400);
-        }, 400);
-      }, duration);
+            return { msgIndex: newIndex, remaining: duration };
+          }
+          return { ...n, remaining: newRemaining };
+        })
+      );
+    }, 1000);
 
-      timers.push(timer);
-    });
-
-    return () => timers.forEach(clearTimeout);
-  }, [messages, positions]);
+    return () => clearInterval(interval);
+  }, [messages]);
 
   if (messages.length === 0) return null;
 
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        {positions.map((msgIndex, i) => {
-          const m = messages[msgIndex];
+        {notes.map((note, i) => {
+          const m = messages[note.msgIndex];
           if (!m) return null;
 
           const isLong = m.message.length > 120;
@@ -134,15 +120,10 @@ export default function StickyNotesBoard({ messages }: Props) {
             >
               <div
                 className={`
-                  ${colors[msgIndex % colors.length]} 
+                  ${colors[note.msgIndex % colors.length]} 
                   ${size.padding}
                   rounded-xl shadow-xl w-full h-full 
-                  transition-all duration-500 
-                  ${
-                    anim.has(i)
-                      ? "opacity-0 scale-90"
-                      : "opacity-100 scale-100"
-                  }
+                  transition-all duration-700 
                 `}
               >
                 <div className="space-y-2 flex flex-col h-full">
