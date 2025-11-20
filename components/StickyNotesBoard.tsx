@@ -119,7 +119,7 @@ export default function StickyNotesBoard({ messages }: Props) {
                 <div className="space-y-3 flex flex-col h-full">
                   <div className="flex items-start gap-2 flex-1">
                     <Heart className="w-4 h-4 text-red-500 mt-1" fill="currentColor" />
-                    <p className={`${size.text} text-gray-800 leading-snug line-clamp-6`}>
+                    <p className={`${size.text} text-gray-800 leading-snug line-clamp-10`}>
                       {message.emoji ? `${message.emoji} ` : ""}
                       {message.message}
                     </p>
