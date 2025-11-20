@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     
-    const { fromName, toName, message, emoji } = await request.json();
+    let { fromName, toName, message, emoji } = await request.json();
     
     // Validation
     if (!fromName || !toName || !message) {
@@ -56,10 +56,14 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
+    fromName = fromName.trim();
+    toName = toName.trim();
+
+    await Message.findOneAndDelete({ fromName, toName });
     const newMessage = new Message({
-      fromName: fromName.trim(),
-      toName: toName.trim(),
+      fromName,
+      toName,
       message: message.trim(),
       emoji: emoji?.trim() || '',
       status: 'pending'
