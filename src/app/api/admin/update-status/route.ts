@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../../lib/mongodb';
 import Message from '../../../../../models/Message';
 import { auth } from '../../../../../lib/authenticator';
-import { emitMessageRefresh } from '../../../../../lib/socket';
 
 // PATCH /api/admin/update-status - Approve or reject a message
 export async function PATCH(request: NextRequest) {
@@ -39,7 +38,6 @@ export async function PATCH(request: NextRequest) {
         { status: 404 }
       );
     }
-    emitMessageRefresh();
     
     return NextResponse.json({
       message: `Message ${status} successfully`,

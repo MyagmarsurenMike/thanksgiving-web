@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button, Empty, Spin } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Button, Empty, Spin, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import StickyNotesBoard from '../../components/StickyNotesBoard';
 import SubmitMessageModal from '../../components/SubmitMessageModal';
 import img from "../../public/LOGO nmk.png";
 import img1 from "../../public/logosm.webp"
-import { socket } from '@/socket';
+
+const { Text } = Typography;
 
 interface Message {
   _id: string;
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const AUTO_REFRESH_INTERVAL = 100000; // 1 minute
 
   const fetchMessages = async () => {
     try {
@@ -56,14 +58,14 @@ export default function HomePage() {
   // Auto refresh
   useEffect(() => {
     fetchMessages();
-
-    socket.on("message-refresh", fetchMessagesQuietly);
-    return () => {
-      socket.off("message-refresh", fetchMessagesQuietly);
-    };
+    const id = setInterval(() => {
+      fetchMessagesQuietly();
+    }, AUTO_REFRESH_INTERVAL);
+    return () => clearInterval(id);
   }, []);
 
   const handleSubmitSuccess = () => {
+    fetchMessagesQuietly();
     setModalVisible(false);
   };
 
