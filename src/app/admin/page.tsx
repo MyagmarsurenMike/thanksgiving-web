@@ -5,6 +5,7 @@ import { Table, Button, Tag, Space, Popconfirm, notification, Typography, Card, 
 import { CheckOutlined, CloseOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import ProtectedRoute from '../../../components/ProtectedRoute';
+import { socket } from '@/socket';
 
 const { Title } = Typography;
 
@@ -49,6 +50,10 @@ function AdminDashboard() {
 
   useEffect(() => {
     fetchMessages();
+    socket.on("message-refresh", fetchMessages);
+    return () => {
+      socket.off("message-refresh", fetchMessages);
+    };
   }, []);
 
   const updateMessageStatus = async (messageId: string, status: 'approved' | 'rejected') => {
@@ -68,7 +73,6 @@ function AdminDashboard() {
           message: 'Амжилттай',
           description: `Мэндчилгээ ${statusText}`,
         });
-        fetchMessages();
       } else {
         const data = await response.json();
         const statusText = status === 'approved' ? 'зөвшөөрөх' : 'татгалзах';
@@ -104,7 +108,6 @@ function AdminDashboard() {
           message: 'Амжилттай',
           description: 'Мэндчилгээ устгагдлаа',
         });
-        fetchMessages();
       } else {
         const data = await response.json();
         notification.error({

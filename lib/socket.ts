@@ -1,19 +1,26 @@
 import { Server } from "socket.io";
 
-let io: Server | null = null;
+interface Cache {
+  value?: Server;
+}
+
+let cached: Cache = (global as any).socket;
+if (!cached) {
+  cached = (global as any).socket = {};
+}
 
 export function initSocket(server: any) {
-  if (io) return io;
+  if (cached.value) return cached.value;
 
-  io = new Server(server);
+  cached.value = new Server(server);
   
   console.log("Socket.IO server initialized");
 
-  return io;
+  return cached.value;
 }
 export function getIO() {
-  if (!io) throw new Error("Socket.IO not initialized!");
-  return io;
+  if (!cached.value) throw new Error("Socket.IO not initialized!");
+  return cached.value;
 }
 export function emitMessageRefresh() {
   getIO().emit("message-refresh");

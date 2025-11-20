@@ -26,9 +26,9 @@ const rotations = [
 
 const noteSizes = [
   { wrapper: 'col-span-1 row-span-1', padding: 'p-2', text: 'text-xs', minHeight: 100 },
-  { wrapper: 'col-span-1 row-span-1', padding: 'p-3', text: 'text-sm', minHeight: 120 },
-  { wrapper: 'col-span-1 row-span-2', padding: 'p-4', text: 'text-sm', minHeight: 140 },
 ];
+
+const ROTATE_DURATION = 30000;
 
 export default function StickyNotesBoard({ messages }: Props) {
   const getNotesCount = () => {
@@ -46,8 +46,6 @@ export default function StickyNotesBoard({ messages }: Props) {
       lastChange: Date.now()
     }))
   );
-
-  const [animating, setAnimating] = useState<Set<number>>(new Set());
 
   // Resize handler
   useEffect(() => {
@@ -88,7 +86,7 @@ export default function StickyNotesBoard({ messages }: Props) {
         });
         return nextData;
       });
-    }, 10000); // 10 seconds
+    }, ROTATE_DURATION); // 10 seconds
 
     return () => clearInterval(interval);
   }, [messages]);
