@@ -71,6 +71,9 @@ export default function StickyNotesBoard({ messages }: Props) {
     const interval = setInterval(() => {
       setNoteData(prev => {
         const usedIds = new Set<string>();
+        prev.forEach(note => {
+          usedIds.add(messages[note.messageIndex]._id);
+        });
         const nextData = prev.map(note => {
           let nextIndex = note.messageIndex;
           // find next message that is not already used
