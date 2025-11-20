@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Heart } from 'lucide-react';
 
 interface Message {
@@ -30,6 +30,16 @@ const noteSizes = [
 
 const ROTATE_DURATION = 30000;
 
+function createNoteIndices(noteCount: number, messageCount: number) {
+  let messageIndices = Array.from({length: messageCount}).map((_, i) => i);
+  for (let i = 0; i < messageIndices.length; i++) {
+    let n = Math.round(Math.random() * messageIndices.length) % messageIndices.length;
+    let tmp = messageIndices[i];
+    messageIndices[i] = messageIndices[n];
+    messageIndices[n] = tmp;
+  }
+  return Array.from({length: noteCount}).map((_, i) => messageIndices[i % messageIndices.length]);
+}
 export default function StickyNotesBoard({ messages }: Props) {
   const getNotesCount = () => {
     if (typeof window === 'undefined') return 12;
@@ -40,28 +50,18 @@ export default function StickyNotesBoard({ messages }: Props) {
   };
 
   const [NOTES_COUNT, setNOTES_COUNT] = useState(getNotesCount());
-  const [noteData, setNoteData] = useState(
-    () => Array.from({ length: NOTES_COUNT }).map((_, i) => ({
-      messageIndex: i % messages.length,
-      lastChange: Date.now()
-    }))
-  );
+  const [noteData, setNoteData] = useState(() => createNoteIndices(NOTES_COUNT, messages.length));
 
   // Resize handler
   useEffect(() => {
     const resize = () => {
       const count = getNotesCount();
       setNOTES_COUNT(count);
-      setNoteData(
-        Array.from({ length: count }).map((_, i) => ({
-          messageIndex: i % messages.length,
-          lastChange: Date.now()
-        }))
-      );
+      setNoteData(createNoteIndices(count, messages.length));
     };
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
-  }, [messages.length]);
+  }, [messages]);
 
   // Rotate messages every 10s
   useEffect(() => {
@@ -69,30 +69,11 @@ export default function StickyNotesBoard({ messages }: Props) {
     if (messages.length === 1) return; // only one message, nothing to rotate
 
     const interval = setInterval(() => {
-      setNoteData(prev => {
-        const usedIds = new Set<string>();
-        prev.forEach(note => {
-          usedIds.add(messages[note.messageIndex]._id);
-        });
-        const nextData = prev.map(note => {
-          let nextIndex = note.messageIndex;
-          // find next message that is not already used
-          for (let i = 1; i <= messages.length; i++) {
-            nextIndex = (note.messageIndex + i) % messages.length;
-            if (!usedIds.has(messages[nextIndex]._id)) break;
-          }
-          usedIds.add(messages[nextIndex]._id);
-          return {
-            messageIndex: nextIndex,
-            lastChange: Date.now()
-          };
-        });
-        return nextData;
-      });
+      setNoteData(createNoteIndices(NOTES_COUNT, messages.length));
     }, ROTATE_DURATION); // 10 seconds
 
     return () => clearInterval(interval);
-  }, [messages]);
+  }, [messages, NOTES_COUNT]);
 
   if (messages.length === 0)
     return (
@@ -105,9 +86,9 @@ export default function StickyNotesBoard({ messages }: Props) {
     <div className="h-auto px-2 sm:px-4 py-4 overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 auto-rows-min">
         {noteData.map((note, position) => {
-          const message = messages[note.messageIndex];
-          const color = stickyColors[note.messageIndex % stickyColors.length];
-          const rotate = rotations[note.messageIndex % rotations.length];
+          const message = messages[note];
+          const color = stickyColors[note % stickyColors.length];
+          const rotate = rotations[note % rotations.length];
           const size = noteSizes[position % noteSizes.length];
 
           return (
